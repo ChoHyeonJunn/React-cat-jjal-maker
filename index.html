@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>고양이 가라사대</title>
+  </head>
+  <style>
+    body {
+      text-align: center;
+    }
+    .main-card button {
+      position: relative;
+      left: -45px;
+      bottom: 15px;
+    }
+    .favorites {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+  </style>
+  <body>
+    <div id="app"></div>
+    <!-- 
+
+     -->
+
+    <!-- react script 추가 -->
+    <script
+      src="https://unpkg.com/react@18/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+
+    <!-- babel script 추가 -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script type="text/babel">
+      // 리액트 컴포넌트 (대문자로 시작)
+      // {} 안에 javascript 문법 쓸수있음
+      // style : react dom 에서는 class 대신 className 사용
+      //  @emotion/styled
+      //  @tailwindcss.com
+
+      const jsonLocalStorage = {
+        setItem: (key, value) => {
+          localStorage.setItem(key, JSON.stringify(value));
+        },
+        getItem: (key) => {
+          return JSON.parse(localStorage.getItem(key));
+        },
+      };
+
+      function CatItem(props) {
+        return (
+          <li>
+            <img src={props.img} style={{ width: "150px" }} />
+          </li>
+        );
+      }
+
+      function Favorites({ favorites }) {
+        return (
+          <ul className="favorites">
+            {favorites.map((cat) => (
+              <CatItem img={cat} key={cat} />
+            ))}
+          </ul>
+        );
+      }
+
+      const MainCard = ({ img, onHandleHeartClick }) => {
+        return (
+          <div className="main-card">
+            <img src={img} alt="고양이" width="400" />
+            <button onClick={onHandleHeartClick}>🤍</button>
+          </div>
+        );
+      };
+
+      const Title = (props) => {
+        return <h1>{props.children}</h1>;
+      };
+
+      const Form = ({ updateMainCat }) => {
+        const includesHangul = (text) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/i.test(text);
+        const [value, setValue] = React.useState("");
+        const [errorMessage, setErrorMessage] = React.useState("");
+
+        const handleInputChange = (e) => {
+          const userValue = e.target.value;
+
+          setErrorMessage("");
+          if (includesHangul(userValue)) {
+            setErrorMessage("한글은 입력할 수 없습니다.");
+          }
+          setValue(e.target.value.toUpperCase());
+        };
+
+        const handleFormSubmit = (e) => {
+          e.preventDefault();
+          setErrorMessage("");
+          if (value === "") {
+            setErrorMessage("빈 값으로 만들 수 없습니다.");
+            return;
+          }
+          updateMainCat();
+        };
+        return (
+          <form onSubmit={handleFormSubmit}>
+            <input
+              type="text"
+              name="name"
+              placeholder="영어 대사를 입력해주세요"
+              onChange={handleInputChange}
+              value={value}
+            />
+            <button type="submit">생성</button>
+            <p style={{ color: "red" }}>{errorMessage}</p>
+          </form>
+        );
+      };
+
+      const App = () => {
+        const CAT1 =
+          "https://i.pinimg.com/564x/c5/5c/76/c55c762ce418abefd071aa7e81c5a213.jpg";
+        const CAT2 =
+          "data:image/jpeg;base64,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";
+        const CAT3 =
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSs8eBH4Vzz3XaXCQVf9oRsqO5UNWYoDfH42A&usqp=CAU";
+
+        const [counter, setCounter] = React.useState(
+          Number(jsonLocalStorage.getItem("counter"))
+        );
+        const [mainCat, setMainCat] = React.useState(CAT1);
+        const [favorites, setFavorites] = React.useState(
+          jsonLocalStorage.getItem("favorites") || []
+        );
+
+        function updateMainCat() {
+          setMainCat(CAT2);
+          const nextCounter = counter + 1;
+          setCounter(nextCounter);
+          jsonLocalStorage.setItem("counter", nextCounter);
+        }
+
+        function handleHeartClick() {
+          const nextFavorites = [...favorites, mainCat];
+          setFavorites([...favorites, CAT3]);
+          jsonLocalStorage.setItem("favorites", nextFavorites);
+        }
+        return (
+          <div>
+            <Title>{counter}번째 고양이 가라사대</Title>
+            <Form updateMainCat={updateMainCat} />
+            <MainCard img={mainCat} onHandleHeartClick={handleHeartClick} />
+            <Favorites favorites={favorites} />
+          </div>
+        );
+      };
+
+      const container = document.querySelector("#app");
+      ReactDOM.render(<App />, container);
+    </script>
+  </body>
+</html>
